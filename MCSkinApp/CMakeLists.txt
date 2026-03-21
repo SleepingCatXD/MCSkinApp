@@ -21,10 +21,10 @@ set(APP_SOURCES
 )
 
 # 生成可执行文件。WIN32 参数可以隐藏 Windows 下背后那个黑色的控制台窗口
-add_executable(MCSKinApp WIN32 ${APP_SOURCES})
+add_executable(MCSkinApp WIN32 ${APP_SOURCES})
 
 # 将主程序与 Qt 模块，以及我们自己写的 DatasetCore 静态库链接起来
-target_link_libraries(MCSKinApp PRIVATE 
+target_link_libraries(MCSkinApp PRIVATE 
     Qt${QT_VERSION_MAJOR}::Core 
     Qt${QT_VERSION_MAJOR}::Gui 
     Qt${QT_VERSION_MAJOR}::Widgets 
