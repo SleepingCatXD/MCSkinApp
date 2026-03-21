@@ -1,6 +1,7 @@
 #include "MCSkinApp.h"
 #include "ui_MCSkinApp.h"
 #include "DatasetManager.h"
+#include "AnnotationWindow.h"
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QStatusBar>
@@ -15,7 +16,6 @@ MCSkinApp::MCSkinApp(QWidget* parent)
 {
     ui.setupUi(this);
 
-    // 设置窗口标题（使用 u8 防止中文乱码）
     this->setWindowTitle("MC Skin Dataset Manager");
 
     ui.imagePreviewLabel->setAlignment(Qt::AlignCenter);
@@ -47,8 +47,27 @@ MCSkinApp::MCSkinApp(QWidget* parent)
     connect(ui.btnCropAvatar, &QPushButton::clicked, this, &MCSkinApp::handleBtnCropAvatar);
     connect(ui.btnBackToStaging, &QPushButton::clicked, this, &MCSkinApp::handleBtnBackToStaging);
     connect(ui.btnRemoveFile, &QPushButton::clicked, this, &MCSkinApp::handleBtnRemoveFile);
+
     // 绑定菜单栏的 View -> Gallery Database 动作
     connect(ui.actionGallery_Database, &QAction::triggered, this, &MCSkinApp::handleOpenProject);
+    connect(ui.actionDeep_Annotation, &QAction::triggered, this, [=]() {
+        if (!m_isProjectLocked) {
+            // 提示用户先锁定或选中一个项目
+            return;
+        }
+        // 呼出 AnnotationWindow，并把当前的 m_currentWorkingId 传给它
+        AnnotationWindow* annoWin = new AnnotationWindow(m_currentWorkingId, datasetDir.path());
+        annoWin->setAttribute(Qt::WA_DeleteOnClose);
+        annoWin->setWindowModality(Qt::ApplicationModal); // 模态窗口，阻塞主界面
+        annoWin->show();
+        });
+
+    // 任何状态改变，立刻触发保存
+    connect(ui.chkMain_IsAI, &QCheckBox::clicked, this, &MCSkinApp::saveQuickTags);
+    connect(ui.chkMain_IsCommercial, &QCheckBox::clicked, this, &MCSkinApp::saveQuickTags);
+    // 文本框失去焦点或按下回车时触发保存
+    connect(ui.editMain_Author, &QLineEdit::editingFinished, this, &MCSkinApp::saveQuickTags);
+    connect(ui.editMain_SourceUrl, &QLineEdit::editingFinished, this, &MCSkinApp::saveQuickTags);
 
     // 初始状态刷新
     updateUiState();
@@ -312,13 +331,29 @@ void MCSkinApp::updateUiState()
             ui.lblAvatar->clear();
             ui.lblAvatar->setText("No Avatar");
         }
+        // 加载快捷打标的数据
+        QString metadataPath = DatasetManager::getMetadataFilePath(workspaceDir.path());
+        QMap<QString, QJsonObject> metaMap = DatasetManager::loadAllMetadata(metadataPath);
+        if (metaMap.contains(m_currentWorkingId)) {
+            QJsonObject meta = metaMap[m_currentWorkingId]["meta"].toObject();
+            ui.chkMain_IsAI->setChecked(meta["is_ai_generated"].toBool());
+            ui.chkMain_IsCommercial->setChecked(meta["is_commercial"].toBool());
+            ui.editMain_Author->setText(meta["author"].toString());
+            ui.editMain_SourceUrl->setText(meta["source_url"].toString());
+        }
     }
     else {
         ui.lblCurrentProject->setText("Project: Not Locked");
         ui.lblAvatar->clear();
         ui.lblAvatar->setText("No Avatar");
         ui.listProjectFiles->clear();
+
+        ui.chkMain_IsAI->setChecked(false);
+        ui.chkMain_IsCommercial->setChecked(false);
+        ui.editMain_Author->clear();
+        ui.editMain_SourceUrl->clear();
     }
+
 }
 
 // 点击“新建空项目”
@@ -605,4 +640,30 @@ void MCSkinApp::openProjectFromGallery(const QString& projectId)
 
         this->statusBar()->showMessage("Project " + projectId + " opened from Gallery.", 3000);
     }
+}
+
+void MCSkinApp::saveQuickTags()
+{
+    if (!m_isProjectLocked || m_currentWorkingId.isEmpty()) return;
+
+    QString metadataPath = DatasetManager::getMetadataFilePath(workspaceDir.path());
+    QMap<QString, QJsonObject> metaMap = DatasetManager::loadAllMetadata(metadataPath);
+
+    // 【修复】：如果 JSON 里还没有这个项目，就立刻用默认模板创建一个！
+    QJsonObject entry = metaMap.contains(m_currentWorkingId) ?
+        metaMap[m_currentWorkingId] :
+        DatasetManager::createDefaultJsonEntry(m_currentWorkingId);
+
+    QJsonObject meta = entry["meta"].toObject();
+
+    meta["is_ai_generated"] = ui.chkMain_IsAI->isChecked();
+    meta["is_commercial"] = ui.chkMain_IsCommercial->isChecked();
+    meta["author"] = ui.editMain_Author->text().trimmed();
+    meta["source_url"] = ui.editMain_SourceUrl->text().trimmed();
+
+    entry["meta"] = meta;
+    metaMap[m_currentWorkingId] = entry;
+    DatasetManager::saveAllMetadata(metadataPath, metaMap);
+
+    this->statusBar()->showMessage("Quick tags saved.", 2000);
 }

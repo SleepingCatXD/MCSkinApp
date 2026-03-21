@@ -93,12 +93,15 @@ bool DatasetManager::processAndArchiveFile(const QString& workspacePath,
 
 bool DatasetManager::updatePromptForId(const QString& workspacePath, const QString& targetId, const QString& promptText) {
     if (targetId.isEmpty()) return false;
-
     QString metadataPath = getMetadataFilePath(workspacePath);
     QMap<QString, QJsonObject> metaMap = loadAllMetadata(metadataPath);
 
     QJsonObject currentEntry = metaMap.contains(targetId) ? metaMap[targetId] : createDefaultJsonEntry(targetId);
-    currentEntry["prompt"] = promptText;
+
+    // 【修复】：使用新的嵌套结构
+    QJsonObject aiTraining = currentEntry["ai_training"].toObject();
+    aiTraining["prompt"] = promptText;
+    currentEntry["ai_training"] = aiTraining;
 
     metaMap[targetId] = currentEntry;
     saveAllMetadata(metadataPath, metaMap);
@@ -145,26 +148,51 @@ void DatasetManager::saveAllMetadata(const QString& metadataPath, const QMap<QSt
 QJsonObject DatasetManager::createDefaultJsonEntry(const QString& id) {
     QJsonObject entry;
     entry["id"] = id;
-    entry["prompt"] = "";
-    QJsonObject copyright;
-    copyright["is_licensed"] = false;
-    copyright["can_commercial"] = false;
-    copyright["is_human_drawn"] = false;
-    copyright["is_ai_generated"] = false;
-    entry["copyright"] = copyright;
+
+    // 1. 元数据 (来源、版权、授权)
+    QJsonObject meta;
+    meta["is_ai_generated"] = false;
+    meta["is_commercial"] = false;
+    meta["permission_ai"] = false;
+    meta["author"] = "";
+    meta["source_url"] = "";
+    meta["permission_evidence_path"] = ""; // 预留接口：以后用于存放聊天截图的相对路径
+    entry["meta"] = meta;
+
+    // 2. 提示词数据
+    QJsonObject aiTraining;
+    aiTraining["prompt"] = "";
+    aiTraining["negative_prompt"] = "";
+    entry["ai_training"] = aiTraining;
+
+    // 3. 人物角色特征 (仅留空接口，以后扩展)
+    entry["attributes"] = QJsonObject();
+
+    // 4. 文件列表
     entry["files"] = QJsonObject();
+
     return entry;
 }
 
+// 无感打标逻辑更新 (适应新的 meta 结构)
 void DatasetManager::updateCategoryTags(QJsonObject& entry, const QString& category) {
-    QJsonObject copyright = entry["copyright"].toObject();
+    QJsonObject meta = entry["meta"].toObject();
+    bool isChanged = false;
+
+    // 如果分类为人类绘制的皮肤或视图，可以顺手把 is_ai_generated 关掉
     if (category == "gt_skin" || category == "gt_view" || category == "gt_project") {
-        copyright["is_human_drawn"] = true;
+        meta["is_ai_generated"] = false;
+        isChanged = true;
     }
+    // 如果明确分类为 AI 预测生成的图，打上 AI 标签
     if (category == "pred_skin" || category == "pred_view") {
-        copyright["is_ai_generated"] = true;
+        meta["is_ai_generated"] = true;
+        isChanged = true;
     }
-    entry["copyright"] = copyright;
+
+    if (isChanged) {
+        entry["meta"] = meta;
+    }
 }
 
 bool DatasetManager::removeFileFromProject(const QString& workspacePath, const QString& targetId, const QString& filename) {

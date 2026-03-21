@@ -172,6 +172,49 @@
       </widget>
      </item>
      <item>
+      <widget class="QGroupBox" name="groupBox_2">
+       <property name="title">
+        <string>标注</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <widget class="QCheckBox" name="chkMain_IsAI">
+          <property name="text">
+           <string>AI生成</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="chkMain_IsCommercial">
+          <property name="text">
+           <string>允许商用</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="editMain_Author">
+          <property name="inputMask">
+           <string/>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="placeholderText">
+           <string>作者/画师名</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="editMain_SourceUrl">
+          <property name="placeholderText">
+           <string>来源网址</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
       <spacer name="verticalSpacer">
        <property name="orientation">
         <enum>Qt::Orientation::Vertical</enum>
@@ -179,7 +222,7 @@
        <property name="sizeHint" stdset="0">
         <size>
          <width>20</width>
-         <height>48</height>
+         <height>40</height>
         </size>
        </property>
       </spacer>
@@ -312,12 +355,18 @@
      <string>View</string>
     </property>
     <addaction name="actionGallery_Database"/>
+    <addaction name="actionDeep_Annotation"/>
    </widget>
    <addaction name="menuView"/>
   </widget>
   <action name="actionGallery_Database">
    <property name="text">
     <string>Gallery Database</string>
+   </property>
+  </action>
+  <action name="actionDeep_Annotation">
+   <property name="text">
+    <string>Deep Annotation</string>
    </property>
   </action>
  </widget>

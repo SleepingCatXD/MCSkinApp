@@ -52,6 +52,8 @@ private slots:
     // 新增：专门处理从画廊传回来的 ID
     void openProjectFromGallery(const QString& projectId);
 
+    void saveQuickTags(); // 统一处理快捷打标的保存
+
 private:
     Ui::MCSkinAppClass ui;
 

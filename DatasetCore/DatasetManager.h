@@ -28,13 +28,13 @@ public:
         const QString& targetId,
         const QString& filename);
 
-private:
-    static QString getDatasetPath(const QString& workspacePath);
     static QString getMetadataFilePath(const QString& workspacePath);
-    static QString getNextFilename(const QString& targetDirPath, const QString& category, const QString& ext);
-
     static QMap<QString, QJsonObject> loadAllMetadata(const QString& metadataPath);
     static void saveAllMetadata(const QString& metadataPath, const QMap<QString, QJsonObject>& metaMap);
     static QJsonObject createDefaultJsonEntry(const QString& id);
+
+private:
+    static QString getDatasetPath(const QString& workspacePath);
+    static QString getNextFilename(const QString& targetDirPath, const QString& category, const QString& ext);
     static void updateCategoryTags(QJsonObject& entry, const QString& category);
 };

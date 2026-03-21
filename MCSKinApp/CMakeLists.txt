@@ -15,6 +15,9 @@ set(APP_SOURCES
     GalleryWindow.ui
     ImageCropperLabel.cpp
     ImageCropperLabel.h
+    AnnotationWindow.cpp
+    AnnotationWindow.h
+    AnnotationWindow.ui
 )
 
 # 生成可执行文件。WIN32 参数可以隐藏 Windows 下背后那个黑色的控制台窗口
