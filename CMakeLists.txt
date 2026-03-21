@@ -13,4 +13,4 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets)
 
 # 包含子目录
 add_subdirectory(DatasetCore)
-add_subdirectory(MCSKinApp)
+add_subdirectory(MCSkinApp)
