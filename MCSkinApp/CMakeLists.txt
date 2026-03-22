@@ -22,6 +22,8 @@ set(APP_SOURCES
 
 # 生成可执行文件。WIN32 参数可以隐藏 Windows 下背后那个黑色的控制台窗口
 add_executable(MCSkinApp WIN32 ${APP_SOURCES})
+# 强制让编译器能在当前目录寻找头文件，解决跨 IDE 的路径差异
+target_include_directories(MCSkinApp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # 将主程序与 Qt 模块，以及我们自己写的 DatasetCore 静态库链接起来
 target_link_libraries(MCSkinApp PRIVATE 

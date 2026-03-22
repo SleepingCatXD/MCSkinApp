@@ -2,6 +2,7 @@
 #include "ui_MCSkinApp.h"
 #include "DatasetManager.h"
 #include "AnnotationWindow.h"
+#include "ImageCropperLabel.h"
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QStatusBar>

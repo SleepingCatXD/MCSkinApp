@@ -3,6 +3,7 @@
 #include <QtWidgets/QMainWindow>
 #include "ui_MCSkinApp.h"
 #include "GalleryWindow.h"
+#include "ImageCropperLabel.h"
 #include <QDir>
 #include <QFileInfoList>
 #include <QImage>
